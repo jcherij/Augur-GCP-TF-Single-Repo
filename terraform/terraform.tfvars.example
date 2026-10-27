@@ -1,0 +1,15 @@
+project_id  = "meridian-augur-prod"
+region      = "us-central1"
+environment = "production"
+
+kafka_producer_principals = [
+  "serviceAccount:client-portal@meridian-portal-prod.iam.gserviceaccount.com",
+  "serviceAccount:crm-events@meridian-crm-prod.iam.gserviceaccount.com",
+  "serviceAccount:transfer-agent-feed@meridian-ta-prod.iam.gserviceaccount.com",
+]
+
+inference_api_callers = [
+  "serviceAccount:advisor-workbench@meridian-workbench-prod.iam.gserviceaccount.com",
+]
+
+alert_notification_channels = ["projects/meridian-augur-prod/notificationChannels/1234567890"]

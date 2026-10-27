@@ -1,0 +1,487 @@
+{
+  "components": {
+    "comp-build-datasets": {
+      "executorLabel": "exec-build-datasets",
+      "inputDefinitions": {
+        "parameters": {
+          "dataset_id": {
+            "parameterType": "STRING"
+          },
+          "lookback_months": {
+            "parameterType": "NUMBER_INTEGER"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "NUMBER_INTEGER"
+          }
+        }
+      }
+    },
+    "comp-condition-1": {
+      "dag": {
+        "tasks": {
+          "notify-model-update": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-notify-model-update"
+            },
+            "dependentTasks": [
+              "register-and-deploy"
+            ],
+            "inputs": {
+              "parameters": {
+                "auc": {
+                  "componentInputParameter": "pipelinechannel--train-model-auc"
+                },
+                "model_resource": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "model_resource",
+                    "producerTask": "register-and-deploy"
+                  }
+                },
+                "model_version": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "model_version",
+                    "producerTask": "register-and-deploy"
+                  }
+                },
+                "topic": {
+                  "componentInputParameter": "pipelinechannel--model_updates_topic"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "notify-model-update"
+            }
+          },
+          "register-and-deploy": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-register-and-deploy"
+            },
+            "inputs": {
+              "artifacts": {
+                "model": {
+                  "componentInputArtifact": "pipelinechannel--train-model-model"
+                }
+              },
+              "parameters": {
+                "endpoint_id": {
+                  "componentInputParameter": "pipelinechannel--endpoint_id"
+                },
+                "kms_key_name": {
+                  "componentInputParameter": "pipelinechannel--kms_key_name"
+                },
+                "model_display_name": {
+                  "componentInputParameter": "pipelinechannel--model_display_name"
+                },
+                "project_id": {
+                  "componentInputParameter": "pipelinechannel--project_id"
+                },
+                "region": {
+                  "componentInputParameter": "pipelinechannel--region"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "register-and-deploy"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "artifacts": {
+          "pipelinechannel--train-model-model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "pipelinechannel--endpoint_id": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--kms_key_name": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--min_auc": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "pipelinechannel--model_display_name": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--model_updates_topic": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--project_id": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--region": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--train-model-auc": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      }
+    },
+    "comp-notify-model-update": {
+      "executorLabel": "exec-notify-model-update",
+      "inputDefinitions": {
+        "parameters": {
+          "auc": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "model_resource": {
+            "parameterType": "STRING"
+          },
+          "model_version": {
+            "parameterType": "STRING"
+          },
+          "topic": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-register-and-deploy": {
+      "executorLabel": "exec-register-and-deploy",
+      "inputDefinitions": {
+        "artifacts": {
+          "model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "endpoint_id": {
+            "parameterType": "STRING"
+          },
+          "kms_key_name": {
+            "parameterType": "STRING"
+          },
+          "model_display_name": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          },
+          "region": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "model_resource": {
+            "parameterType": "STRING"
+          },
+          "model_version": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-train-model": {
+      "executorLabel": "exec-train-model",
+      "inputDefinitions": {
+        "parameters": {
+          "dataset_id": {
+            "parameterType": "STRING"
+          },
+          "feature_columns": {
+            "parameterType": "LIST"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "metrics": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "auc": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-build-datasets": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "build_datasets"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'google-cloud-bigquery==3.25.0'  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.14.6' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef build_datasets(project_id: str, dataset_id: str, lookback_months: int) -> int:\n    from google.cloud import bigquery\n\n    events = f\"{project_id}.{dataset_id}.client_activity_events\"\n\n    def features_sql(snapshots_sql: str) -> str:\n        return f\"\"\"\n        WITH snapshots AS ({snapshots_sql}),\n        events AS (\n          SELECT client_id, event_type, amount_usd, aum_usd_after, event_time\n          FROM `{events}`\n        )\n        SELECT\n          s.snapshot_date,\n          e.client_id,\n          ARRAY_AGG(e.aum_usd_after IGNORE NULLS ORDER BY e.event_time DESC LIMIT 1)[SAFE_OFFSET(0)] AS aum_usd,\n          COUNTIF(e.event_type = 'portal_login'\n                  AND e.event_time >= TIMESTAMP(DATE_SUB(s.snapshot_date, INTERVAL 30 DAY))) AS portal_logins_30d,\n          COUNTIF(e.event_type = 'advisor_contact'\n                  AND e.event_time >= TIMESTAMP(DATE_SUB(s.snapshot_date, INTERVAL 90 DAY))) AS advisor_contacts_90d,\n          COUNTIF(e.event_type = 'complaint') AS complaints_12m,\n          SUM(IF(e.event_type = 'deposit'\n                 AND e.event_time >= TIMESTAMP(DATE_SUB(s.snapshot_date, INTERVAL 90 DAY)), e.amount_usd, 0)) AS deposits_90d_usd,\n          SUM(IF(e.event_type = 'redemption'\n                 AND e.event_time >= TIMESTAMP(DATE_SUB(s.snapshot_date, INTERVAL 90 DAY)), e.amount_usd, 0)) AS redemptions_90d_usd\n        FROM snapshots s\n        JOIN events e\n          ON e.event_time < TIMESTAMP(s.snapshot_date)\n         AND e.event_time >= TIMESTAMP(DATE_SUB(s.snapshot_date, INTERVAL 365 DAY))\n        GROUP BY s.snapshot_date, e.client_id\n        \"\"\"\n\n    training_snapshots = f\"\"\"\n        SELECT snapshot_date FROM UNNEST(GENERATE_DATE_ARRAY(\n          DATE_SUB(DATE_TRUNC(CURRENT_DATE(), MONTH), INTERVAL {lookback_months} MONTH),\n          DATE_SUB(DATE_TRUNC(CURRENT_DATE(), MONTH), INTERVAL 3 MONTH),\n          INTERVAL 1 MONTH)) AS snapshot_date\n    \"\"\"\n\n    script = f\"\"\"\n    TRUNCATE TABLE `{project_id}.{dataset_id}.client_training_examples`;\n    INSERT INTO `{project_id}.{dataset_id}.client_training_examples`\n    WITH f AS ({features_sql(training_snapshots)}),\n    future AS (\n      SELECT f.snapshot_date, f.client_id,\n             SUM(IF(e.event_type = 'redemption', e.amount_usd, 0)) AS redeemed_next_90d_usd\n      FROM f\n      LEFT JOIN `{events}` e\n        ON e.client_id = f.client_id\n       AND e.event_time >= TIMESTAMP(f.snapshot_date)\n       AND e.event_time < TIMESTAMP(DATE_ADD(f.snapshot_date, INTERVAL 90 DAY))\n      GROUP BY 1, 2\n    )\n    SELECT f.*, COALESCE(future.redeemed_next_90d_usd, 0) > 0.5 * COALESCE(f.aum_usd, 0) AS redeemed_90d\n    FROM f JOIN future USING (snapshot_date, client_id)\n    WHERE f.aum_usd > 0;\n\n    TRUNCATE TABLE `{project_id}.{dataset_id}.client_features_current`;\n    INSERT INTO `{project_id}.{dataset_id}.client_features_current`\n    SELECT client_id, snapshot_date AS as_of_date, aum_usd, portal_logins_30d, advisor_contacts_90d,\n           complaints_12m, deposits_90d_usd, redemptions_90d_usd\n    FROM ({features_sql(\"SELECT CURRENT_DATE() AS snapshot_date\")})\n    WHERE aum_usd > 0;\n    \"\"\"\n\n    client = bigquery.Client(project=project_id)\n    client.query(script).result()\n    rows = client.query(\n        f\"SELECT COUNT(*) AS n FROM `{project_id}.{dataset_id}.client_training_examples`\"\n    ).result()\n    return list(rows)[0][\"n\"]\n\n"
+          ],
+          "image": "python:3.11-slim"
+        }
+      },
+      "exec-notify-model-update": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "notify_model_update"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'google-cloud-pubsub==2.23.1'  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.14.6' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef notify_model_update(topic: str, model_resource: str, model_version: str, auc: float):\n    import json\n    from datetime import datetime, timezone\n\n    from google.cloud import pubsub_v1\n\n    message = {\n        \"model_resource\": model_resource,\n        \"model_version\": model_version,\n        \"auc\": auc,\n        \"deployed_at\": datetime.now(timezone.utc).isoformat(),\n    }\n    pubsub_v1.PublisherClient().publish(topic, json.dumps(message).encode()).result()\n\n"
+          ],
+          "image": "python:3.11-slim"
+        }
+      },
+      "exec-register-and-deploy": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "register_and_deploy"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'google-cloud-aiplatform==1.71.1'  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.14.6' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef register_and_deploy(\n    project_id: str,\n    region: str,\n    endpoint_id: str,\n    kms_key_name: str,\n    model_display_name: str,\n    model: Input[Model],\n) -> NamedTuple(\"DeployOutputs\", [(\"model_resource\", str), (\"model_version\", str)]):\n    from collections import namedtuple\n\n    from google.cloud import aiplatform\n\n    aiplatform.init(project=project_id, location=region, encryption_spec_key_name=kms_key_name)\n\n    existing = aiplatform.Model.list(filter=f'display_name=\"{model_display_name}\"')\n    uploaded = aiplatform.Model.upload(\n        display_name=model_display_name,\n        artifact_uri=model.uri,\n        serving_container_image_uri=\"us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-7:latest\",\n        parent_model=existing[0].resource_name if existing else None,\n        is_default_version=True,\n        labels={\"application\": \"augur\"},\n    )\n\n    endpoint = aiplatform.Endpoint(endpoint_name=endpoint_id)\n    previous = [deployed.id for deployed in endpoint.list_models()]\n    endpoint.deploy(\n        model=uploaded,\n        deployed_model_display_name=f\"{model_display_name}-v{uploaded.version_id}\",\n        machine_type=\"n1-standard-2\",\n        min_replica_count=1,\n        max_replica_count=3,\n        traffic_percentage=100,\n    )\n    for deployed_model_id in previous:\n        endpoint.undeploy(deployed_model_id=deployed_model_id)\n\n    return namedtuple(\"DeployOutputs\", [\"model_resource\", \"model_version\"])(\n        uploaded.resource_name, str(uploaded.version_id)\n    )\n\n"
+          ],
+          "image": "python:3.11-slim"
+        }
+      },
+      "exec-train-model": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "train_model"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'google-cloud-bigquery[pandas]==3.25.0' 'db-dtypes==1.2.0' 'pandas==2.2.2' 'scikit-learn==1.3.2' 'xgboost==1.7.6'  &&  python3 -m pip install --quiet --no-warn-script-location 'kfp==2.14.6' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef train_model(\n    project_id: str,\n    dataset_id: str,\n    feature_columns: list,\n    model: Output[Model],\n    metrics: Output[Metrics],\n) -> NamedTuple(\"TrainOutputs\", [(\"auc\", float)]):\n    import os\n    from collections import namedtuple\n\n    import xgboost as xgb\n    from google.cloud import bigquery\n    from sklearn.metrics import roc_auc_score\n    from sklearn.model_selection import train_test_split\n\n    df = bigquery.Client(project=project_id).query(\n        f\"SELECT {', '.join(feature_columns)}, redeemed_90d \"\n        f\"FROM `{project_id}.{dataset_id}.client_training_examples`\"\n    ).to_dataframe()\n\n    x = df[feature_columns].astype(float).fillna(0).values\n    y = df[\"redeemed_90d\"].astype(int).values\n    x_train, x_test, y_train, y_test = train_test_split(\n        x, y, test_size=0.2, stratify=y, random_state=42\n    )\n\n    booster = xgb.train(\n        {\"objective\": \"binary:logistic\", \"eval_metric\": \"auc\", \"max_depth\": 4, \"eta\": 0.1},\n        xgb.DMatrix(x_train, label=y_train),\n        num_boost_round=200,\n    )\n    auc = float(roc_auc_score(y_test, booster.predict(xgb.DMatrix(x_test))))\n\n    os.makedirs(model.path, exist_ok=True)\n    booster.save_model(os.path.join(model.path, \"model.bst\"))\n    model.metadata[\"feature_columns\"] = feature_columns\n    metrics.log_metric(\"auc\", auc)\n    metrics.log_metric(\"training_rows\", len(df))\n\n    return namedtuple(\"TrainOutputs\", [\"auc\"])(auc)\n\n"
+          ],
+          "image": "python:3.11-slim",
+          "resources": {
+            "cpuLimit": 4.0,
+            "memoryLimit": 16.0,
+            "resourceCpuLimit": "4",
+            "resourceMemoryLimit": "16G"
+          }
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "name": "augur-training"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "build-datasets": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-build-datasets"
+          },
+          "inputs": {
+            "parameters": {
+              "dataset_id": {
+                "componentInputParameter": "dataset_id"
+              },
+              "lookback_months": {
+                "componentInputParameter": "lookback_months"
+              },
+              "project_id": {
+                "componentInputParameter": "project_id"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "build-datasets"
+          }
+        },
+        "condition-1": {
+          "componentRef": {
+            "name": "comp-condition-1"
+          },
+          "dependentTasks": [
+            "train-model"
+          ],
+          "inputs": {
+            "artifacts": {
+              "pipelinechannel--train-model-model": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "model",
+                  "producerTask": "train-model"
+                }
+              }
+            },
+            "parameters": {
+              "pipelinechannel--endpoint_id": {
+                "componentInputParameter": "endpoint_id"
+              },
+              "pipelinechannel--kms_key_name": {
+                "componentInputParameter": "kms_key_name"
+              },
+              "pipelinechannel--min_auc": {
+                "componentInputParameter": "min_auc"
+              },
+              "pipelinechannel--model_display_name": {
+                "componentInputParameter": "model_display_name"
+              },
+              "pipelinechannel--model_updates_topic": {
+                "componentInputParameter": "model_updates_topic"
+              },
+              "pipelinechannel--project_id": {
+                "componentInputParameter": "project_id"
+              },
+              "pipelinechannel--region": {
+                "componentInputParameter": "region"
+              },
+              "pipelinechannel--train-model-auc": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "auc",
+                  "producerTask": "train-model"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "auc-gate"
+          },
+          "triggerPolicy": {
+            "condition": "inputs.parameter_values['pipelinechannel--train-model-auc'] >= inputs.parameter_values['pipelinechannel--min_auc']"
+          }
+        },
+        "train-model": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-train-model"
+          },
+          "dependentTasks": [
+            "build-datasets"
+          ],
+          "inputs": {
+            "parameters": {
+              "dataset_id": {
+                "componentInputParameter": "dataset_id"
+              },
+              "feature_columns": {
+                "runtimeValue": {
+                  "constant": [
+                    "aum_usd",
+                    "portal_logins_30d",
+                    "advisor_contacts_90d",
+                    "complaints_12m",
+                    "deposits_90d_usd",
+                    "redemptions_90d_usd"
+                  ]
+                }
+              },
+              "project_id": {
+                "componentInputParameter": "project_id"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "train-model"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "dataset_id": {
+          "parameterType": "STRING"
+        },
+        "endpoint_id": {
+          "parameterType": "STRING"
+        },
+        "kms_key_name": {
+          "parameterType": "STRING"
+        },
+        "lookback_months": {
+          "defaultValue": 12.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_INTEGER"
+        },
+        "min_auc": {
+          "defaultValue": 0.75,
+          "isOptional": true,
+          "parameterType": "NUMBER_DOUBLE"
+        },
+        "model_display_name": {
+          "defaultValue": "augur-redemption-risk",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "model_updates_topic": {
+          "parameterType": "STRING"
+        },
+        "project_id": {
+          "parameterType": "STRING"
+        },
+        "region": {
+          "parameterType": "STRING"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.14.6"
+}
