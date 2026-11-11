@@ -527,6 +527,7 @@ resource "google_vertex_ai_endpoint" "augur" {
   }
 
   depends_on = [google_kms_crypto_key_iam_member.service_agents]
+  network    = google_compute_network.augur.id
 }
 
 resource "google_project_iam_custom_role" "predictor" {
